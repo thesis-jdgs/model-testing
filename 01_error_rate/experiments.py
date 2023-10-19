@@ -233,7 +233,7 @@ def main() -> None:
             n_iter_no_change=15
         )
     ]
-    datasets = regression_dataset_names[117:]
+    datasets = regression_dataset_names
     num_processes = min(len(datasets), 5)
     with multiprocessing.Pool(num_processes) as pool:
         pool.starmap(
