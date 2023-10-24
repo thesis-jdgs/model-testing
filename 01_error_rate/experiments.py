@@ -146,8 +146,8 @@ def main() -> None:
 
     from asboostreg import SparseAdditiveBoostingRegressor
     from interpret.glassbox import ExplainableBoostingRegressor
+    from optuna.integration import OptunaSearchCV
     from pmlb import regression_dataset_names
-    from sklearn.decomposition import PCA
     from sklearn.ensemble import RandomForestRegressor
     from sklearn.linear_model import RidgeCV
     from sklearn.preprocessing import KBinsDiscretizer
@@ -233,7 +233,12 @@ def main() -> None:
             n_iter_no_change=15
         )
     ]
-    datasets = regression_dataset_names
+    solved = [
+        2,   7,   8,  16,  18,  19,  22,  23,  26,  27,  33,  35,  37,  42,
+        44,  48,  49,  50,  54,  63,  66,  70,  74,  77,  79,  84,  88,  95,
+        96, 101, 102, 104, 105, 107, 110, 113, 119, 120
+    ]
+    datasets = list(np.array(regression_dataset_names)[solved])
     num_processes = min(len(datasets), 5)
     with multiprocessing.Pool(num_processes) as pool:
         pool.starmap(
