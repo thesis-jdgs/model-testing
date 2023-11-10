@@ -144,3 +144,13 @@ Time: 3.067s
 Score: 0.966
 Selected features: 12
 Percentage: 0.545
+
+
+    if redundant is None:
+        redundant = [
+            10, 10, 10, 10, 10, 11, 10, 10, 10, 11
+        ]
+    if irrelevant is None:
+        irrelevant = [
+            10, 11, 11, 12, 11, 11, 12, 12, 11, 12
+        ]

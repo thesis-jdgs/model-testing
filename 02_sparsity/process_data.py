@@ -1,10 +1,16 @@
+"""Process data and run feature selection experiments."""
+
 from time import perf_counter_ns
 
 import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
 import pmlb
 from asboostreg import SparseAdditiveBoostingRegressor
 from sklearn.model_selection import train_test_split
+
+
+RNG = np.random.default_rng(0)
 
 
 def add_irrelevant_features(
@@ -24,7 +30,7 @@ def add_irrelevant_features(
     """
     n_samples, n_features_orig = X.shape
     X_irrelevant = pd.DataFrame(
-        data=eps * np.random.randn(n_samples, n_features),
+        data=eps * RNG.standard_normal(size=(n_samples, n_features)),
         columns=[f"irrelevant_{i}" for i in range(n_features)],
     )
     X_transformed = pd.concat([X, X_irrelevant], axis=1)
@@ -47,9 +53,7 @@ def add_redundant_features(
         pd.DataFrame: Dataset with redundant features.
     """
     n_samples, n_features_orig = X.shape
-    sample_features = np.random.choice(
-        np.arange(n_features_orig), size=n_features, replace=False
-    )
+    sample_features = RNG.choice(n_features_orig, size=n_features)
     X_redundant = X.iloc[:, sample_features] + eps * np.random.randn(
         n_samples, n_features
     )
@@ -103,6 +107,41 @@ def get_score_and_selected_features(
     return score, select
 
 
+def plot(*, redundant: list, irrelevant: list, both: list) -> None:
+    n = len(redundant)
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=list(range(1, n + 1)),
+        y=redundant,
+        name="Redundantes",
+        mode="lines+markers",
+    ))
+    fig.add_trace(go.Scatter(
+        x=list(range(1, n + 1)),
+        y=irrelevant,
+        name="Irrelevantes",
+        mode="lines+markers",
+    ))
+    fig.add_trace(go.Scatter(
+        x=list(range(2, n + 1))[::2],
+        y=both,
+        name="Irrelevantes y redundantes",
+        mode="lines+markers",
+    ))
+    fig.update_layout(
+        title="Selección de características de SABRegresor",
+        xaxis_title="Número de características añadidas",
+        yaxis_title="Número de características seleccionadas",
+        legend_title="",
+        font=dict(
+            size=18,
+        )
+    )
+    fig.update_xaxes(tick0=0, dtick=1)
+    fig.update_yaxes(tick0=0, dtick=1)
+    fig.show()
+
+
 def main():
     df = pmlb.fetch_data("562_cpu_small")
     X = pd.DataFrame(df.drop(columns="target"))
@@ -125,19 +164,51 @@ def main():
     get_score_and_selected_features(X, y, model)
 
     # Add redundant features
-    for i in range(1, 11):
+    red_scores = []
+    red_selected = []
+    estimate_eps = np.min(np.var(X, axis=0)) / 10
+    for i in range(1, 21):
         print_title(f"Redundant features: {i}")
-        estimate_eps = np.min(np.var(X, axis=0)) / 10
         X_transformed = add_redundant_features(
             X, n_features=i, eps=estimate_eps
         )
-        get_score_and_selected_features(X_transformed, y, model)
+        score, select = get_score_and_selected_features(X_transformed, y, model)
+        red_scores.append(score)
+        red_selected.append(select)
 
     # Add irrelevant features
-    for i in range(1, 11):
+    irr_scores = []
+    irr_selected = []
+    for i in range(1, 21):
         print_title(f"Irrelevant features: {i}")
         X_transformed = add_irrelevant_features(X, n_features=i)
-        get_score_and_selected_features(X_transformed, y, model)
+        irr_score, irr_select = get_score_and_selected_features(X_transformed, y, model)
+        irr_scores.append(irr_score)
+        irr_selected.append(irr_select)
+
+    both_scores = []
+    both_selected = []
+    for i in range(1, 11):
+        print_title(f"Both features: {i}")
+        estimate_eps = np.min(np.var(X, axis=0)) / 10
+        X_transformed = add_irrelevant_features(
+            add_redundant_features(X, n_features=i, eps=estimate_eps),
+            n_features=i,
+        )
+        score, select = get_score_and_selected_features(X_transformed, y, model)
+        both_scores.append(score)
+        both_selected.append(select)
+
+    #
+    plot(redundant=red_selected, irrelevant=irr_selected, both=both_selected)
+
+    # save all the score and selected features
+    np.save("red_scores.npy", red_scores)
+    np.save("red_selected.npy", red_selected)
+    np.save("irr_scores.npy", irr_scores)
+    np.save("irr_selected.npy", irr_selected)
+    np.save("both_scores.npy", both_scores)
+    np.save("both_selected.npy", both_selected)
 
 
 if __name__ == "__main__":
