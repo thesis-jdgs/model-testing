@@ -149,16 +149,20 @@ def optuna_model(cv):
     base_model = SparseAdditiveBoostingRegressor(
         random_state=0,
         n_iter_no_change=15,
+        max_leaves=3,
+        min_samples_leaf=1,
+        max_bins=3,
+        row_subsample=0.8,
     )
     params = {
-        "n_estimators": IntDistribution(500, 10_000, log=True),
-        "learning_rate": FloatDistribution(0.001, 0.5, log=True),
-        "max_leaves": IntDistribution(3, 64),
-        "l2_regularization": FloatDistribution(0.01, 10, log=True),
-        "max_bins": IntDistribution(56, 1024, log=True),
-        "min_samples_leaf": IntDistribution(1, 15),
-        "row_subsample": FloatDistribution(0.15, 0.9),
-        "redundancy_exponent": FloatDistribution(0.0, 3.0),
+        "n_estimators": IntDistribution(500, 5_000, log=True),
+        "learning_rate": FloatDistribution(0.18, 0.5, log=True),
+        # "max_leaves": IntDistribution(3, 64),
+        "l2_regularization": FloatDistribution(0.01, 5, log=True),
+        # "max_bins": IntDistribution(56, 1024, log=True),
+        # "min_samples_leaf": IntDistribution(1, 15),
+        # "row_subsample": FloatDistribution(0.15, 0.9),
+        "redundancy_exponent": FloatDistribution(0.1, 2.5),
     }
     return OptunaSearchCV(
         base_model,
@@ -204,6 +208,7 @@ def run_optuna_experiment(
     experiment_id = mlflow.get_experiment_by_name(dataset).experiment_id
 
     X, y = data.drop(columns=["target"]), data["target"]
+    X = X.loc[:, X.var() > 0]
     kf = KFold(n_splits=n_folds)
     optreg = optuna_model(kf)
     scores = np.full(n_folds, np.nan)
@@ -272,9 +277,8 @@ def main() -> None:
     #     '562_cpu_small'
     # ]
     datasets = [
-        '197_cpu_act',
-        '573_cpu_act',
-        '564_fried',
+        #'201_pol',
+        '215_2dplanes',
     ]
     for dataset in datasets:
         run_optuna_experiment(dataset)

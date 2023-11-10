@@ -1,0 +1,146 @@
+Baseline
+--------
+Time: 6.223s
+Score: 0.967
+Selected features: 10
+Percentage: 0.833
+
+Redundant features: 1
+---------------------
+Time: 5.591s
+Score: 0.966
+Selected features: 10
+Percentage: 0.769
+
+Redundant features: 2
+---------------------
+Time: 5.402s
+Score: 0.966
+Selected features: 10
+Percentage: 0.714
+
+Redundant features: 3
+---------------------
+Time: 4.318s
+Score: 0.953
+Selected features: 10
+Percentage: 0.667
+
+Redundant features: 4
+---------------------
+Time: 4.707s
+Score: 0.960
+Selected features: 10
+Percentage: 0.625
+
+Redundant features: 5
+---------------------
+Time: 4.049s
+Score: 0.967
+Selected features: 10
+Percentage: 0.588
+
+Redundant features: 6
+---------------------
+Time: 3.567s
+Score: 0.950
+Selected features: 11
+Percentage: 0.611
+
+Redundant features: 7
+---------------------
+Time: 4.072s
+Score: 0.952
+Selected features: 10
+Percentage: 0.526
+
+Redundant features: 8
+---------------------
+Time: 3.942s
+Score: 0.953
+Selected features: 10
+Percentage: 0.500
+
+Redundant features: 9
+---------------------
+Time: 3.642s
+Score: 0.956
+Selected features: 10
+Percentage: 0.476
+
+Redundant features: 10
+----------------------
+Time: 4.514s
+Score: 0.952
+Selected features: 11
+Percentage: 0.500
+
+Irrelevant features: 1
+----------------------
+Time: 3.891s
+Score: 0.966
+Selected features: 10
+Percentage: 0.769
+
+Irrelevant features: 2
+----------------------
+Time: 4.062s
+Score: 0.965
+Selected features: 11
+Percentage: 0.786
+
+Irrelevant features: 3
+----------------------
+Time: 3.908s
+Score: 0.966
+Selected features: 11
+Percentage: 0.733
+
+Irrelevant features: 4
+----------------------
+Time: 3.971s
+Score: 0.966
+Selected features: 12
+Percentage: 0.750
+
+Irrelevant features: 5
+----------------------
+Time: 4.142s
+Score: 0.964
+Selected features: 11
+Percentage: 0.647
+
+Irrelevant features: 6
+----------------------
+Time: 3.369s
+Score: 0.966
+Selected features: 11
+Percentage: 0.611
+
+Irrelevant features: 7
+----------------------
+Time: 3.617s
+Score: 0.965
+Selected features: 12
+Percentage: 0.632
+
+Irrelevant features: 8
+----------------------
+Time: 3.676s
+Score: 0.965
+Selected features: 12
+Percentage: 0.600
+
+Irrelevant features: 9
+----------------------
+Time: 3.264s
+Score: 0.965
+Selected features: 11
+Percentage: 0.524
+
+Irrelevant features: 10
+-----------------------
+Time: 3.067s
+Score: 0.966
+Selected features: 12
+Percentage: 0.545
