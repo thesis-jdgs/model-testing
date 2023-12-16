@@ -2,34 +2,12 @@
 from typing import Any
 
 import numpy as np
+import pandas as pd
 from pmlb import fetch_data
 from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import KFold
 
-
-def median_score(
-    y_true: np.ndarray,
-    y_pred: np.ndarray,
-) -> float:
-    """Calculate the median score, which is defined as 1 - (MAE / MAE_median).
-
-    Parameters
-    ----------
-    y_true : np.ndarray
-        True labels.
-    y_pred : np.ndarray
-        Predicted labels.
-
-    Returns
-    -------
-    float
-        Error rate.
-
-    """
-    median = np.median(y_true)
-    min_mae = np.mean(np.abs(y_true - median))
-    mae = mean_absolute_error(y_true, y_pred)
-    return 1.0 - mae / min_mae
+from utils import median_score
 
 
 def run_experiment(
@@ -52,15 +30,17 @@ def run_experiment(
     """
     data = fetch_data(dataset)
     X, y = data.drop(columns=["target"]), data["target"]
+    X = X.loc[:, X.var() > 0]
     kf = KFold(n_splits=n_folds)
     opt_regressor.set_params(cv=kf)
     opt_regressor.fit(X, y)
     regressor = regressor_class(
         random_state=0,
-        n_iter_no_change=15,
+        n_iter_no_change=10_000,
+        row_subsample=0.8,
+        dropout=False,
         **opt_regressor.best_params_
     )
-    print(regressor)
     scores = np.empty(n_folds, dtype=float)
     for fold, (train_index, test_index) in enumerate(kf.split(X)):
         X_train, X_test = X.iloc[train_index], X.iloc[test_index]
@@ -70,7 +50,7 @@ def run_experiment(
         scores[fold] = median_score(y_test, y_pred)
     mean = np.nanmean(scores)
     std = np.nanstd(scores)
-    return scores, mean, std
+    return scores, mean, std, regressor
 
 
 def run_experiment2(
@@ -110,40 +90,74 @@ def main() -> None:
     from optuna.distributions import FloatDistribution
     from optuna.distributions import IntDistribution
     from optuna.integration import OptunaSearchCV
-    from pmlb import regression_dataset_names
 
     params = {
-        "n_estimators": IntDistribution(500, 10_000, log=True),
-        "learning_rate": FloatDistribution(0.001, 0.5, log=True),
-        "max_leaves": IntDistribution(3, 64, log=True),
-        "l2_regularization": FloatDistribution(0.01, 10, log=True),
-        "max_bins": IntDistribution(128, 1024, log=True),
-        "min_samples_leaf": IntDistribution(1, 15),
-        "row_subsample": FloatDistribution(0.15, 0.9),
+        "learning_rate": FloatDistribution(0.1, 0.6, log=True),
+        "max_leaves": IntDistribution(10, 70, log=True),
+        "l2_regularization": FloatDistribution(0.05, 2.5, log=True),
+        "max_bins": IntDistribution(50, 850, log=True),
+        "min_samples_leaf": IntDistribution(1, 20),
+        "redundancy_exponent": FloatDistribution(0.15, 2.2),
+        #"dropout_rate": FloatDistribution(0.0, 0.1),
+        #"dropout_probability": FloatDistribution(0.0, 0.2),
+        #"n_estimators": IntDistribution(20, 5_100),
     }
 
     asreg = SparseAdditiveBoostingRegressor(
         random_state=0,
-        n_iter_no_change=15,
+        n_iter_no_change=30,
+        row_subsample=0.8,
+        dropout=False,
+        n_estimators=5100,
     )
     optreg = OptunaSearchCV(
         asreg,
-        n_trials=5,
+        n_trials=100,
         n_jobs=5,
         random_state=0,
         scoring="neg_mean_absolute_error",
         param_distributions=params,
-        timeout=30,
+        timeout=3600,
         refit=False,
     )
 
-    solved = [
-        2,   7,   8,  16,  18,  19,  22,  23,  26,  27,  33,  35,  37,  42,
-        44,  48,  49,  50,  54,  63,  66,  70,  74,  77,  79,  84,  88,  95,
-        96, 101, 102, 104, 105, 107, 110, 113, 119
+    names = [
+        '215_2dplanes',
+        '344_mv',
+        '562_cpu_small',
+        '294_satellite_image',
+        '573_cpu_act',
+        '227_cpu_small',
+        '564_fried',
+        '201_pol'
     ]
-    datasets = list(np.array(regression_dataset_names)[solved])
-    print(run_experiment(datasets[0], SparseAdditiveBoostingRegressor, optreg))
+    to_df = {
+        'dataset': [],
+        'mean': [],
+        'std': [],
+    }
+    for i, name in enumerate(names):
+        _, mean, std, regressor = run_experiment(
+            name, SparseAdditiveBoostingRegressor, optreg
+        )
+        reg_params = {
+            key: val
+            for key, val in regressor.get_params().items()
+            if key in params.keys()
+        }
+        if i == 0:
+            for key in reg_params.keys():
+                to_df[key] = []
+        for key, value in reg_params.items():
+            to_df[key].append(value)
+        to_df['dataset'].append(name)
+        to_df['mean'].append(mean)
+        to_df['std'].append(std)
+        print(regressor)
+    df = pd.DataFrame(to_df)
+    df["ste"] = df["std"] / np.sqrt(5)
+    print(df)
+    print(df.to_latex())
 
 
 def main2():
