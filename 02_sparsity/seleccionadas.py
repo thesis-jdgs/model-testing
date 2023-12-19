@@ -16,14 +16,14 @@ params = [
         "redundancy_exponent": 2.00,
     },
     {
-        "n_estimators": 31,
-        "learning_rate": 0.27,
-        "row_subsample": 0.88,
-        "max_bins": 786,
-        "l2_regularization": 0.9,
-        "min_samples_leaf": 1,
-        "max_leaves": 39,
-        "redundancy_exponent": 1.00,
+        "n_estimators": 19,
+        "learning_rate": 0.5818436202315729,
+        "row_subsample": 0.8,
+        "max_bins": 394,
+        "l2_regularization": 0.07555353471459758,
+        "min_samples_leaf": 14,
+        "max_leaves": 19,
+        "redundancy_exponent": 0.0,
     },
     {
         "n_estimators": 4549,
@@ -106,6 +106,10 @@ datos_column = [
     "564_fried",
     "201_pol",
 ]
+
+datos_column = [datos_column[1]]
+params = [params[1]]
+
 
 for datos, param in zip(datos_column, params):
     X, y = fetch_data(datos, return_X_y=True)

@@ -4,10 +4,12 @@ from typing import Any
 import numpy as np
 import pandas as pd
 from pmlb import fetch_data
-from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import KFold
 
 from utils import median_score
+
+
+RNG = np.random.default_rng(0)
 
 
 def run_experiment(
@@ -36,9 +38,11 @@ def run_experiment(
     opt_regressor.fit(X, y)
     regressor = regressor_class(
         random_state=0,
-        n_iter_no_change=10_000,
+        n_iter_no_change=15,
         row_subsample=0.8,
         dropout=False,
+        n_estimators=5100,
+        redundancy_exponent=0.0,
         **opt_regressor.best_params_
     )
     scores = np.empty(n_folds, dtype=float)
@@ -72,6 +76,7 @@ def run_experiment2(
     """
     data = fetch_data(dataset)
     X, y = data.drop(columns=["target"]), data["target"]
+    X = X.loc[:, X.var() > 0]
     kf = KFold(n_splits=n_folds)
     scores = np.empty(n_folds, dtype=float)
     for fold, (train_index, test_index) in enumerate(kf.split(X)):
@@ -83,6 +88,14 @@ def run_experiment2(
     mean = np.nanmean(scores)
     std = np.nanstd(scores)
     return scores, mean, std
+
+
+def random_relevance(
+    X, y
+):
+    """Return a random canonical vector like X[0]."""
+    return RNG.random(X.shape[1])
+
 
 
 def main() -> None:
@@ -97,18 +110,15 @@ def main() -> None:
         "l2_regularization": FloatDistribution(0.05, 2.1),
         "max_bins": IntDistribution(55, 790, log=True),
         "min_samples_leaf": IntDistribution(1, 20),
-        "redundancy_exponent": FloatDistribution(0.15, 2.2),
-        #"dropout_rate": FloatDistribution(0.0, 0.1),
-        #"dropout_probability": FloatDistribution(0.0, 0.2),
-        #"n_estimators": IntDistribution(20, 5_100),
     }
 
     asreg = SparseAdditiveBoostingRegressor(
         random_state=0,
-        n_iter_no_change=100,
+        n_iter_no_change=15,
         row_subsample=0.8,
         dropout=False,
-        n_estimators=100,
+        n_estimators=5100,
+        redundancy_exponent=0.0,
     )
     optreg = OptunaSearchCV(
         asreg,
@@ -117,19 +127,13 @@ def main() -> None:
         random_state=0,
         scoring="neg_mean_absolute_error",
         param_distributions=params,
-        timeout=600,
+        timeout=3600,
         refit=False,
     )
 
     names = [
+        #'344_mv',
         '215_2dplanes',
-        '344_mv',
-        '562_cpu_small',
-        '294_satellite_image',
-        '573_cpu_act',
-        '227_cpu_small',
-        '564_fried',
-        '201_pol'
     ]
     to_df = {
         'dataset': [],
@@ -158,25 +162,6 @@ def main() -> None:
     df["ste"] = df["std"] / np.sqrt(5)
     print(df)
     print(df.to_latex())
-
-
-def main2():
-    from asboostreg import SparseAdditiveBoostingRegressor
-    from pmlb import regression_dataset_names
-
-    params = {
-        'n_estimators': 1876,
-        'learning_rate': 0.020444049468993485,
-        'max_leaves': 4,
-        'l2_regularization': 0.5200040243048039,
-        'max_bins': 502,
-        'min_samples_leaf': 2,
-        'row_subsample': 0.30343377928331733
-    }
-    asreg = SparseAdditiveBoostingRegressor(
-        random_state=0, n_iter_no_change=15, **params
-    )
-    print(run_experiment2(regression_dataset_names[2], asreg))
 
 
 if __name__ == "__main__":

@@ -143,7 +143,8 @@ def plot(*, redundant: list, irrelevant: list, both: list) -> None:
 
 
 def main():
-    df = pmlb.fetch_data("562_cpu_small")
+    dataset = "197_cpu_act"
+    df = pmlb.fetch_data(dataset)
     X = pd.DataFrame(df.drop(columns="target"))
     y = pd.Series(df["target"])
     model = SparseAdditiveBoostingRegressor(
@@ -203,13 +204,20 @@ def main():
     plot(redundant=red_selected, irrelevant=irr_selected, both=both_selected)
 
     # save all the score and selected features
-    np.save("red_scores.npy", red_scores)
-    np.save("red_selected.npy", red_selected)
-    np.save("irr_scores.npy", irr_scores)
-    np.save("irr_selected.npy", irr_selected)
-    np.save("both_scores.npy", both_scores)
-    np.save("both_selected.npy", both_selected)
+    np.save(f"{dataset}_red_scores.npy", red_scores)
+    np.save(f"{dataset}_red_selected.npy", red_selected)
+    np.save(f"{dataset}_irr_scores.npy", irr_scores)
+    np.save(f"{dataset}_irr_selected.npy", irr_selected)
+    np.save(f"{dataset}_both_scores.npy", both_scores)
+    np.save(f"{dataset}_both_selected.npy", both_selected)
+
+
+def main2():
+    redundant = np.load("197_cpu_act_red_selected.npy")
+    irrelevant = np.load("197_cpu_act_irr_selected.npy")
+    both = np.load("197_cpu_act_both_selected.npy")
+    plot(redundant=redundant, irrelevant=irrelevant, both=both)
 
 
 if __name__ == "__main__":
-    main()
+    main2()
