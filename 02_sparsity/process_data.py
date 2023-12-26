@@ -143,6 +143,8 @@ def plot(*, redundant: list, irrelevant: list, both: list) -> None:
 
 
 def main():
+    from model_helpers.mrmr_functions import safe_divide
+
     dataset = "197_cpu_act"
     df = pmlb.fetch_data(dataset)
     X = pd.DataFrame(df.drop(columns="target"))
@@ -150,14 +152,17 @@ def main():
     model = SparseAdditiveBoostingRegressor(
          random_state=0,
          n_iter_no_change=15,
-         max_bins=750,
-         max_leaves=60,
-         min_samples_leaf=15,
-         n_estimators=400,
-         row_subsample=0.62,
-         l2_regularization=0.89,
-         learning_rate=0.18,
-         redundancy_exponent=0.72,
+         max_bins=541,
+         max_leaves=19,
+         min_samples_leaf=18,
+         n_estimators=962,
+         row_subsample=0.8,
+         l2_regularization=0.61,
+         learning_rate=0.16,
+         redundancy_exponent=1.00,
+         dropout=True,
+         dropout_rate=0.03,
+         dropout_probability=0.18,
     )
 
     # Baseline
@@ -204,13 +209,14 @@ def main():
     plot(redundant=red_selected, irrelevant=irr_selected, both=both_selected)
 
     # save all the score and selected features
+    """
     np.save(f"{dataset}_red_scores.npy", red_scores)
     np.save(f"{dataset}_red_selected.npy", red_selected)
     np.save(f"{dataset}_irr_scores.npy", irr_scores)
     np.save(f"{dataset}_irr_selected.npy", irr_selected)
     np.save(f"{dataset}_both_scores.npy", both_scores)
     np.save(f"{dataset}_both_selected.npy", both_selected)
-
+    """
 
 def main2():
     redundant = np.load("197_cpu_act_red_selected.npy")
@@ -220,4 +226,4 @@ def main2():
 
 
 if __name__ == "__main__":
-    main2()
+    main()

@@ -242,7 +242,7 @@ def run_optuna_experiment(
 
 
 def main() -> None:
-
+    from sklearn.tree import DecisionTreeRegressor
     # datasets = [
     #     '1196_BNG_pharynx',
     #     '201_pol',
@@ -253,11 +253,20 @@ def main() -> None:
     #     '562_cpu_small'
     # ]
     datasets = [
-        #'201_pol',
-        '215_2dplanes',
+        "215_2dplanes",
+        "344_mv",
+        "562_cpu_small",
+        "197_cpu_act",
+        "294_satellite_image",
+        "227_cpu_small",
+        "564_fried",
+        "201_pol",
     ]
     for dataset in datasets:
-        run_optuna_experiment(dataset)
+        run_experiment(
+            dataset,
+            [DecisionTreeRegressor(random_state=0, max_depth=3)],
+        )
 
 
 if __name__ == "__main__":

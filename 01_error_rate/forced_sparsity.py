@@ -33,14 +33,15 @@ models = {
     "Ridge": make_pipeline(
         StandardScaler(), RidgeCV()
     ),
-    "DT": DecisionTreeRegressor(random_state=0),
+    "DT": DecisionTreeRegressor(random_state=0, max_depth=3),
     "RF": make_pipeline(
             KBinsDiscretizer(n_bins=255, encode="ordinal", random_state=0),
             RandomForestRegressor(n_estimators=50, random_state=0),
         ),
     "XGB": XGBRegressor(n_estimators=50, random_state=0),
-    "EBM": ExplainableBoostingRegressor(random_state=0, max_rounds=1_000),
+    "EBM": ExplainableBoostingRegressor(random_state=0, max_rounds=1_000, interactions=0),
 }
+models = {"RF": models["RF"]}
 
 datos_column = [
     "215_2dplanes",
@@ -54,8 +55,6 @@ datos_column = [
 ]
 selected = [1, 3, 11, 15, 25, 11, 6, 25]
 
-datos_column = [datos_column[1]]
-selected = [selected[1]]
 
 df_dict = []
 with warnings.catch_warnings():
